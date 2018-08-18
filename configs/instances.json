@@ -1,0 +1,21 @@
+{
+    "intance_alias": {
+        "s_account_login": "",
+        "s_account_password": "",
+        "s_account_base64secret": null,
+        "b_use_account_loginkey": 0,
+        "s_account_loginkey": null,
+        "i_account_setpersonastate": 1,
+        "i_account_clientgamesplayed": [],
+        "b_use_misc_passphrase": 1,
+        "s_misc_passphrase": null,
+        "i_use_misc_replymessage": 0,
+        "s_misc_replymessage": "",
+        "i_account_friendrequests": 0,
+        "i_account_grouprequests": 0,
+        "b_misc_friendrequests_rejecturlname": 0,
+        "i_misc_friendrequests_rejectaccountrank": 0,
+        "b_misc_friendmessages_rejecturlstring": 0,
+        "b_cmd_groupinvite": 0
+    }
+}
