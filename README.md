@@ -1,19 +1,16 @@
 # nodejs_steambot
-A Simple bot i made to boost up games playtime, manage friends (autoblock spamming bots) and also invite members to groups using special commands.
+A simple node-steam-user bot
 ## Features
-
-* Use shared secret key to generate Steam Guard App code
-* Use login key to login without need for Steam Guard App code
-* Set default persona state
-* Add games for gameplay time boost (up to 32 at once)
-* Set/Use passphase as auth code for account managing commands
-* Set/Use auto-reply mode and/or auto-reply message when having gameplay time boost active
-* Auto-manage friend requests
-* Auto-manage group requests
-* Auto-Block friend requests with name that contains URL
-* Auto-Block friends with messages received that contains URL
-* Decline friend requests if account rank less than given
-* Enable/Disable usage of **/friend.inv** command
+* Set games for gameplay time idle (up to 32 at once)
+* Send commands with passphrase to bot using Steam chat
+* Automatic replies, command validation, mirror messages
+* Use shared secret key to generate Steam Guard codes
+## Features (Planned)
+* Manage friend/group invite requests
+* Accept friend requests if user's rank is higher than set in config
+* Reject friend requests if user's rank is less than set in config
+* Reject friend requests if user has URL in name
+* Unfriend/Block friends which send URLs in Steam chat
 
 ## Getting Started
 ### Installing
@@ -26,19 +23,20 @@ cd nodejs_steambot
 npm install
 ```
 ### Configure
-There are two ways to set options for bot:
-1. Launch options
-2. Edit config file
+There are 3 ways to set options for bot:
+1. Append config keys as arguments while executing script
+2. Append ``--configure`` argument while executing script
+3. Manually edit config file
 
 First one commonly used for automatic bots for deploy (e.g. another script runs this bots script with given launch options).
 
-Second, for good handy setup. Config file can be found at **./configs/instances.json**
+Second and third, for good handy setup. Config file is: ``instances.json``
 
 #### Config structure
 ```json
 {
     "instance_alias": {
-        "variable": value[, ...]
+        "key": value[, ...]
     }[, ...]
 }
 ```
@@ -46,32 +44,41 @@ Second, for good handy setup. Config file can be found at **./configs/instances.
 #### Config variables
 | Variable | Type | Values | Description |
 |:-|:-:|:-:|:-|
-| s_account_login | string | any | Account login |
-| s_account_password | string | any | Account password |
-| s_account_base64secret | string | any | Account shared secret key |
-| b_use_account_loginkey | int | 0, 1 | Use account login key (after one successful login) |
-| i_account_setpersonastate | int | 0 - 7 | Set persona state on login [EPersonaState](https://github.com/DoctorMcKay/node-steam-user/blob/master/enums/EPersonaState.js)|
-| i_account_clientgamesplayed | int array | 0 - 999999 | Set games to boost gameplay time |
-| b_use_misc_passphrase | int | 0, 1 | Use passphrase from **s_misc_passphrase** in sensetive commands |
-| s_misc_passphrase | string | any | Passphrase to use for auth checks on commands |
-| i_use_misc_replymessage | int | 0, 1, 2, 3 | 0 - No action, 1 - Command validation, 2 - Command validation + auto-reply on gameplay time boost with **s_misc_replymessage**, 3 - Message mirror |
-| s_misc_replymessage | string | any | Used only when **i_use_misc_replymessage == 2** |
-| i_account_friendrequests | int | 0, 1, 2 | 0 - No Action, 1 - Auto-Accept, 2 - Auto-Reject |
-| i_account_grouprequests | int | 0, 1, 2 | 0 - No Action, 1 - Auto-Accept, 2 - Auto-Reject |
-| b_misc_friendrequests_rejecturlname | int | 0, 1 | Auto-Blocks friend requests with name that countains URL |
-| i_misc_friendrequests_rejectaccountrank | int | 0 - ? | Decline friend requests if account rank less than given |
-| b_misc_friendmessages_rejecturlstring | int | 0, 1 | Auto-Block friends with messages received that contains URL |
-| b_cmd_groupinvite | int | 0, 1 | Enable/Disable usage of **/friend.inv** command |
+| instance_username | string | any | Steam account username |
+| instance_password | string | any | Steam account password |
+| instance_useloginkey | int | 0, 1 | Save login key |
+| instance_2fasecret | string | any | Steam account shared secret 2FA key |
+| instance_passphrase | string | any | A codeword used for authenticating commands sent through Steam chat |
+| instance_usepassphrase | string | any | Disables usage of codeword and commands |
+| instance_clientgamesplayed | array type of int | 0 - 999999 | Array of games IDs to idle gameplay time (ex. 730,540,...) |
+| instance_replymessage_idle | string | any | Message to send back when receiving message from friend |
+| instance_replymessage_gameidle | string | any | Message to send back when receiving message from friend while idling gameplay time |
+| instance_usereplymessage | int | bit combinations | 1st - command validation, 2nd - instance_replymessage_idle, 3rd - instance_replymessage_gameidle, 4th - message mirroring |
+| instance_friendrequests | int | 0, 1, 2, 3 | 0 - No action, 1 - Accept All, 2 - Reject All, 3 - Auto (using instance_friendrequests_auto) |
+| instance_grouprequests | int | 0, 1, 2 | 0 - No action, 1 - Accept All, 2 - Reject All |
+| instance_friendrequests_auto | int | bit combinations | 1st - Accept if user's rank is higher than in config, 2nd - Reject if user's rank is less than set in config, 3rd - Reject if user has URL in name |
+| instance_friendmessages_url | int | bit combinations| 1st - unfriend, 2nd - Block |
 
-## Running
-To run a bot with required instance
+
+## Usage
+Create new instance and configure it
 ```
-node index.js --selectinstance="instance_alias"
+node index.js --configure
 ```
-or using screen
 ```
-screen -S screen_alias node index.js --selectinstance="instance_alias"
+node index.js --instance="instance_alias" --configure
+```
+```
+node index.js <SET CONFIG KEYS AS ARGUMENTS HERE (ex. --instance_password="your_password")>
+```
+```
+node index.js --instance="instance_alias" <SET CONFIG KEYS AS ARGUMENTS HERE (ex. --instance_password="your_password")>
 ```
 
-## Knows issues
-* When failing to write correct Steam Guard code first time, second time nothing will happen. Restart the bot and type the code again. _Check line 134 and report if you know how to solve this._
+Use existing instance
+```
+node index.js
+```
+```
+node index.js --instance="instance_alias"
+```
