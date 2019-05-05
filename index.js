@@ -78,7 +78,7 @@ var questions = [
         message: 'Steam password:',
         mask: '*',
         validate: function(answer) {
-            if (answer.length < 8) return 'Password length must be not less than 8 symbols!'
+            if (answer.length < 6) return 'Password length must be not less than 6 symbols!'
             return true
         }
     },
@@ -417,9 +417,6 @@ function main() {
                                                 L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                             })
                                         }
-                                    } else {
-                                        console.log(script_messages.instance_missing_key_critical('instance_password, instance_2fasecret'))
-                                        process.exit(9);
                                     }
                                 }
     
@@ -452,9 +449,6 @@ function main() {
                                             L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                         })
                                     }
-                                } else {
-                                    console.log(script_messages.instance_missing_key_critical('instance_password, instance_2fasecret'))
-                                    process.exit(9);
                                 }
                             }
 
@@ -491,9 +485,6 @@ function main() {
                                                 L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                             })
                                         }
-                                    } else {
-                                        console.log(script_messages.instance_missing_key_critical('instance_password, instance_2fasecret'))
-                                        process.exit(9);
                                     }
                                 }
     
@@ -525,9 +516,6 @@ function main() {
                                             L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                         })
                                     }
-                                } else {
-                                    console.log(script_messages.instance_missing_key_critical('instance_password, instance_2fasecret'))
-                                    process.exit(9);
                                 }
                             }
 
@@ -542,46 +530,50 @@ function main() {
 
     function steamUser_SignIn(L_iConfig, callback) {
         if (L_iConfig.hasOwnProperty('instance_username') && L_iConfig.hasOwnProperty('instance_password')) {
-            if (L_iConfig.hasOwnProperty('instance_loginkey') && L_iConfig['instance_useloginkey']) {
-                logger.info('Use instance_loginkey')
-                decrypt(L_iConfig['instance_password'], L_iConfig['key'], function(decrypted_str) {
-                    if (L_iConfig['instance_username'] < 1) {
-                        logger.warn(script_messages.instance_empty_key('instance_username'))
-                    }
-                    if (decrypted_str.length < 1) {
-                        logger.warn(script_messages.instance_empty_key('instance_password'))
-                    }
-                    client.logOn({
-                        accountName: L_iConfig['instance_username'],
-                        password: decrypted_str,
-                        rememberPassword: L_iConfig['instance_useloginkey'],
-                        loginKey: L_iConfig['instance_loginkey']
+            if (L_iConfig['instance_username'].length > 0 && typeof(L_iConfig['instance_password']) == 'object') {
+                if (L_iConfig.hasOwnProperty('instance_loginkey') && L_iConfig['instance_useloginkey']) {
+                    logger.info('Use instance_loginkey')
+                    decrypt(L_iConfig['instance_password'], L_iConfig['key'], function(decrypted_str) {
+                        if (L_iConfig['instance_username'].length == 0) {
+                            logger.warn(script_messages.instance_empty_key('instance_username'))
+                        }
+                        if (decrypted_str.length < 6) {
+                            logger.warn(script_messages.instance_empty_key('instance_password'))
+                        }
+                        client.logOn({
+                            accountName: L_iConfig['instance_username'],
+                            password: decrypted_str,
+                            rememberPassword: L_iConfig['instance_useloginkey'],
+                            loginKey: L_iConfig['instance_loginkey']
+                        })
+                        if (callback) {
+                            callback()
+                        }
                     })
-                    if (callback) {
-                        callback()
-                    }
-                })
+                } else {
+                    decrypt(L_iConfig['instance_password'], L_iConfig['key'], function(decrypted_str) {
+                        if (L_iConfig['instance_username'].length == 0) {
+                            logger.warn(script_messages.instance_empty_key('instance_username'))
+                        }
+                        if (decrypted_str.length < 6) {
+                            logger.warn(script_messages.instance_empty_key('instance_password'))
+                        }
+                        client.logOn({
+                            accountName: L_iConfig['instance_username'],
+                            password: decrypted_str,
+                            rememberPassword: L_iConfig['instance_useloginkey']
+                        })
+                        if (callback) {
+                            callback()
+                        }
+                    })
+                }
             } else {
-                logger.warn(script_messages.instance_missing_key('instance_loginkey'))
-                decrypt(L_iConfig['instance_password'], L_iConfig['key'], function(decrypted_str) {
-                    if (L_iConfig['instance_username'] < 1) {
-                        logger.warn(script_messages.instance_empty_key('instance_username'))
-                    }
-                    if (decrypted_str.length < 1) {
-                        logger.warn(script_messages.instance_empty_key('instance_password'))
-                    }
-                    client.logOn({
-                        accountName: L_iConfig['instance_username'],
-                        password: decrypted_str,
-                        rememberPassword: L_iConfig['instance_useloginkey']
-                    })
-                    if (callback) {
-                        callback()
-                    }
-                })
+                logger.error(script_messages.instance_missing_key_critical('instance_username | instance_password'))
+                process.exit(9);
             }
         } else {
-            logger.error(script_messages.instance_missing_key_critical('instance_username, instance_password'))
+            logger.error(script_messages.instance_missing_key_critical('instance_username | instance_password'))
             process.exit(9);
         }
     }
@@ -687,11 +679,7 @@ function main() {
                                         logger.warn(script_messages.instance_empty_key('instance_2fasecret'))
                                     }
                                 })
-                            } else {
-                                logger.warn(script_messages.instance_missing_key('instance_2fasecret'))
                             }
-                        } else {
-                            logger.warn(script_messages.instance_missing_key('instance_2fasecret'))
                         }
 
                         if (lastCodeWrong) logger.warn('Last Steam Guard Code you have entered was incorrect, try again!')
