@@ -275,6 +275,26 @@ var questions = [
         }
     },
     {
+        type: 'input',
+        name: 'instance_autoaccept_rank',
+        message: 'Set friend requests autoaccept rank:',
+        mask: '*',
+        default: 10,
+        filter: function(val) {
+            return parseInt(val)
+        }
+    },
+    {
+        type: 'input',
+        name: 'instance_autoreject_rank',
+        message: 'Set friend requests autoreject rank:',
+        mask: '*',
+        default: 10,
+        filter: function(val) {
+            return parseInt(val)
+        }
+    },
+    {
         type: 'checkbox',
         name: 'instance_friendmessages_url',
         message: 'How to deal with friends sending links in chat?',
@@ -302,7 +322,7 @@ var questions = [
             }
             return answerResultValue
         }
-    }
+    },
 ]
 
 function main() {
@@ -323,6 +343,8 @@ function main() {
         instance_friendrequests: 0,
         instance_grouprequests: 0,
         instance_friendrequests_auto: 0,
+        instance_autoaccept_rank: 0,
+        instance_autoreject_rank: 0,
         instance_friendmessages_url: 0,
         key: {},
         instance_loginkey: ""
@@ -389,8 +411,8 @@ function main() {
                                 }
     
                                 for (var key in L_iConfig_keysToCrypt) {
-                                    if (L_iConfig[L_iConfig_keysToCrypt[key]].length > 0 || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
-                                        if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
+                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
+                                        if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' && L_iConfig[L_iConfig_keysToCrypt[key]].length > 0) {
                                             encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
                                                 L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                             })
@@ -424,8 +446,8 @@ function main() {
                             }
 
                             for (var key in L_iConfig_keysToCrypt) {
-                                if (L_iConfig[L_iConfig_keysToCrypt[key]].length > 0 || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
-                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
+                                if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
+                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' && L_iConfig[L_iConfig_keysToCrypt[key]].length > 0) {
                                         encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
                                             L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                         })
@@ -463,8 +485,8 @@ function main() {
                                 }
     
                                 for (var key in L_iConfig_keysToCrypt) {
-                                    if (L_iConfig[L_iConfig_keysToCrypt[key]].length > 0 || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
-                                        if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
+                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
+                                        if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' && L_iConfig[L_iConfig_keysToCrypt[key]].length > 0) {
                                             encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
                                                 L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                             })
@@ -497,8 +519,8 @@ function main() {
                             }
 
                             for (var key in L_iConfig_keysToCrypt) {
-                                if (L_iConfig[L_iConfig_keysToCrypt[key]].length > 0 || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
-                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
+                                if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
+                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' && L_iConfig[L_iConfig_keysToCrypt[key]].length > 0) {
                                         encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
                                             L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                         })
@@ -640,16 +662,34 @@ function main() {
                         if (callback) callback()
                     }
 
+                    function logger_logEventSuccess(steamID, reason, callback) {
+                        steamUser_getSenderName(steamID, function(senderName) {
+                            logger.info("Successfully processed event from [" + senderName + "][" + steamID + "]: " + reason)
+                        })
+                        if (callback) callback()
+                    }
+
+                    function logger_logEventFail(steamID, reason, callback) {
+                        steamUser_getSenderName(steamID, function(senderName) {
+                            logger.info("Failed to process event from [" + senderName + "][" + steamID + "]: " + reason)
+                        })
+                        if (callback) callback()
+                    }
+
                     client.on('steamGuard', function(domain, callback, lastCodeWrong) {
                         if (iConfig.hasOwnProperty('instance_2fasecret') && (!lastCodeWrong)) {
-                            decrypt(iConfig['instance_2fasecret'], iConfig['key'], function(decrypted_str) {
-                                if (decrypted_str.length > 0) {
-                                    logger.info('Use instance_2fasecret')
-                                    callback(steamtotp.generateAuthCode(decrypted_str))
-                                } else {
-                                    logger.warn(script_messages.instance_empty_key('instance_2fasecret'))
-                                }
-                            })
+                            if (typeof(iConfig['instance_2fasecret']) == 'object') {
+                                decrypt(iConfig['instance_2fasecret'], iConfig['key'], function(decrypted_str) {
+                                    if (decrypted_str.length > 0) {
+                                        logger.info('Use instance_2fasecret')
+                                        callback(steamtotp.generateAuthCode(decrypted_str))
+                                    } else {
+                                        logger.warn(script_messages.instance_empty_key('instance_2fasecret'))
+                                    }
+                                })
+                            } else {
+                                logger.warn(script_messages.instance_missing_key('instance_2fasecret'))
+                            }
                         } else {
                             logger.warn(script_messages.instance_missing_key('instance_2fasecret'))
                         }
@@ -797,6 +837,77 @@ function main() {
                             } else if (((iConfig['instance_usereplymessage'] >> instance_usereplymessage_enums.mode_idle - 1) & 1) && iConfig['instance_clientgamesplayed'].length == 0) {
                                 client.chatMessage(steamID, iConfig['instance_replymessage_idle'])
                             }
+
+                            if (steamUser_messageUrlRegex.test(message) && iConfig['instance_friendmessages_url'] > 0) {
+                                if ((iConfig['instance_friendmessages_url'] >> instance_friendmessages_url_enums.unfriend - 1) & 1) {
+                                    client.removeFriend(steamID);
+                                }
+                                if ((iConfig['instance_friendmessages_url'] >> instance_friendmessages_url_enums.block - 1) & 1) {
+                                    client.blockUser(steamID);
+                                }
+                                if (((iConfig['instance_friendmessages_url'] >> instance_friendmessages_url_enums.unfriend - 1) & 1) && (((iConfig['instance_friendmessages_url'] >> instance_friendmessages_url_enums.block - 1) & 1))) {
+                                    client.blockUser(steamID);
+                                    client.removeFriend(steamID);
+                                }
+                            }
+                        }
+                    })
+
+                    client.on('friendRelationship', function(steamID, relationship) {
+                        if (relationship == steamuser.Steam.EFriendRelationship.RequestRecipient) {
+                            logger_logIncomingEvent(steamID, 'RequestRecipient')
+                            if (iConfig['instance_friendrequests'] > 0) {
+                                switch (iConfig['instance_friendrequests']) {
+                                    case 1:
+                                        logger_logEventSuccess(steamID, "Accepting any friend requests.")
+                                        client.addFriend(steamID)
+                                        break;
+                                    case 2:
+                                        logger_logEventFail(steamID, "Rejecting any friend requests.")
+                                        client.addFriend(steamID)
+                                        client.removeFriend(steamID)
+                                        break;
+                                    case 3:
+                                        if (iConfig['instance_friendrequests_auto'] > 0) {
+                                            if ((iConfig['instance_friendrequests_auto'] >> instance_friendrequests_auto_enums.accept_rank - 1) & 1) {
+                                                client.getSteamLevels([steamID], function(results) {
+                                                    if (results[steamID.getSteamID64()] > instance_autoaccept_rank) {
+                                                        logger_logEventSuccess(steamID, "Accepting friend requests with Steam profile level > " + instance_autoaccept_rank)
+                                                        client.addFriend(steamID)
+                                                    }
+                                                })
+                                            }
+                                            if ((iConfig['instance_friendrequests_auto'] >> instance_friendrequests_auto_enums.reject_rank - 1) & 1) {
+                                                client.getSteamLevels([steamID], function(results) {
+                                                    if (results[steamID.getSteamID64()] < instance_autoreject_rank) {
+                                                        logger_logEventSuccess(steamID, "Rejecting friend requests with Steam profile level < " + instance_autoreject_rank)
+                                                        client.addFriend(steamID)
+                                                        client.removeFriend(steamID)
+                                                    }
+                                                })
+                                            }
+                                            if ((iConfig['instance_friendrequests_auto'] >> instance_friendrequests_auto_enums.reject_name - 1) & 1) {
+                                                steamUser_getSenderName(steamID, function(senderName) {
+                                                    if (steamUser_messageUrlRegex.test(senderName)) {
+                                                        logger_logEventSuccess(steamID, "Rejecting friend requests if Steam profile name contains an URL")
+                                                        client.addFriend(steamID)
+                                                        client.removeFriend(steamID)
+                                                    }
+                                                })
+                                            }
+                                        }
+                                        break;
+                                
+                                    default:
+                                        break;
+                                }
+                            }
+                        }
+                        if (relationship == steamuser.Steam.EFriendRelationship.Blocked) {
+                            logger_logIncomingEvent(steamID, 'Blocked')
+                        }
+                        if (relationship == steamuser.Steam.EFriendRelationship.None) {
+                            logger_logIncomingEvent(steamID, 'None')
                         }
                     })
 
