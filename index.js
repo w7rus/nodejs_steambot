@@ -379,49 +379,25 @@ function main() {
                                     }
                                 }
 
-                                // if (typeof(L_iConfig['instance_password']) == 'string') {
-                                //     if (L_iConfig['key'] == undefined) {
-                                //         L_iConfig['key'] = crypto.randomBytes(32)
-                                //     }
-                                //     encrypt(L_iConfig['instance_password'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
-                                //         L_iConfig['instance_password'] = encoded_str
-                                //         if (typeof(L_iConfig['instance_2fasecret']) == 'string') {
-                                //             encrypt(L_iConfig['instance_2fasecret'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str_) {
-                                //                 L_iConfig['instance_2fasecret'] = encoded_str_
-                                //                 callback(L_iConfig, L_iConfigAlias__)
-                                //             })
-                                //         } else {
-                                //             callback(L_iConfig, L_iConfigAlias__)
-                                //         }
-                                //     })
-                                // } else {
-                                //     if (typeof(L_iConfig['instance_2fasecret']) == 'string') {
-                                //         if (L_iConfig['key'] == undefined) {
-                                //             L_iConfig['key'] = crypto.randomBytes(32)
-                                //         }
-                                //         encrypt(L_iConfig['instance_2fasecret'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str_) {
-                                //             L_iConfig['instance_2fasecret'] = encoded_str_
-                                //             callback(L_iConfig, L_iConfigAlias__)
-                                //         })
-                                //     } else {
-                                //         callback(L_iConfig, L_iConfigAlias__)
-                                //     }
-                                // }
-
                                 var L_iConfig_keysToCrypt = [
                                     'instance_password',
                                     'instance_2fasecret'
                                 ]
     
-                                if (!(L_iConfig['key'].hasOwnProperty('type') && L_iConfig['key'].hasOwnProperty('data'))) {
+                                if (L_iConfig['key'] == undefined) {
                                     L_iConfig['key'] = crypto.randomBytes(32)
                                 }
     
                                 for (var key in L_iConfig_keysToCrypt) {
-                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
-                                        encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
-                                            L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
-                                        })
+                                    if (L_iConfig[L_iConfig_keysToCrypt[key]].length > 0 || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
+                                        if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
+                                            encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
+                                                L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
+                                            })
+                                        }
+                                    } else {
+                                        console.log(script_messages.instance_missing_key_critical('instance_password, instance_2fasecret'))
+                                        process.exit(9);
                                     }
                                 }
     
@@ -438,49 +414,25 @@ function main() {
                                 }
                             }
 
-                            // if (typeof(L_iConfig['instance_password']) == 'string') {
-                            //     if (L_iConfig['key'] == undefined) {
-                            //         L_iConfig['key'] = crypto.randomBytes(32)
-                            //     }
-                            //     encrypt(L_iConfig['instance_password'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
-                            //         L_iConfig['instance_password'] = encoded_str
-                            //         if (typeof(L_iConfig['instance_2fasecret']) == 'string') {
-                            //             encrypt(L_iConfig['instance_2fasecret'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str_) {
-                            //                 L_iConfig['instance_2fasecret'] = encoded_str_
-                            //                 callback(L_iConfig, L_iConfigAlias__)
-                            //             })
-                            //         } else {
-                            //             callback(L_iConfig, L_iConfigAlias__)
-                            //         }
-                            //     })
-                            // } else {
-                            //     if (typeof(L_iConfig['instance_2fasecret']) == 'string') {
-                            //         if (L_iConfig['key'] == undefined) {
-                            //             L_iConfig['key'] = crypto.randomBytes(32)
-                            //         }
-                            //         encrypt(L_iConfig['instance_2fasecret'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str_) {
-                            //             L_iConfig['instance_2fasecret'] = encoded_str_
-                            //             callback(L_iConfig, L_iConfigAlias__)
-                            //         })
-                            //     } else {
-                            //         callback(L_iConfig, L_iConfigAlias__)
-                            //     }
-                            // }
-
                             var L_iConfig_keysToCrypt = [
                                 'instance_password',
                                 'instance_2fasecret'
                             ]
 
-                            if (!(L_iConfig['key'].hasOwnProperty('type') && L_iConfig['key'].hasOwnProperty('data'))) {
+                            if (L_iConfig['key'] == undefined) {
                                 L_iConfig['key'] = crypto.randomBytes(32)
                             }
 
                             for (var key in L_iConfig_keysToCrypt) {
-                                if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
-                                    encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
-                                        L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
-                                    })
+                                if (L_iConfig[L_iConfig_keysToCrypt[key]].length > 0 || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
+                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
+                                        encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
+                                            L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
+                                        })
+                                    }
+                                } else {
+                                    console.log(script_messages.instance_missing_key_critical('instance_password, instance_2fasecret'))
+                                    process.exit(9);
                                 }
                             }
 
@@ -501,49 +453,25 @@ function main() {
                                     }
                                 }
 
-                                // if (typeof(L_iConfig['instance_password']) == 'string') {
-                                //     if (L_iConfig['key'] == undefined) {
-                                //         L_iConfig['key'] = crypto.randomBytes(32)
-                                //     }
-                                //     encrypt(L_iConfig['instance_password'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
-                                //         L_iConfig['instance_password'] = encoded_str
-                                //         if (typeof(L_iConfig['instance_2fasecret']) == 'string') {
-                                //             encrypt(L_iConfig['instance_2fasecret'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str_) {
-                                //                 L_iConfig['instance_2fasecret'] = encoded_str_
-                                //                 callback(L_iConfig, L_iConfigAlias__)
-                                //             })
-                                //         } else {
-                                //             callback(L_iConfig, L_iConfigAlias__)
-                                //         }
-                                //     })
-                                // } else {
-                                //     if (typeof(L_iConfig['instance_2fasecret']) == 'string') {
-                                //         if (L_iConfig['key'] == undefined) {
-                                //             L_iConfig['key'] = crypto.randomBytes(32)
-                                //         }
-                                //         encrypt(L_iConfig['instance_2fasecret'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str_) {
-                                //             L_iConfig['instance_2fasecret'] = encoded_str_
-                                //             callback(L_iConfig, L_iConfigAlias__)
-                                //         })
-                                //     } else {
-                                //         callback(L_iConfig, L_iConfigAlias__)
-                                //     }
-                                // }
-
                                 var L_iConfig_keysToCrypt = [
                                     'instance_password',
                                     'instance_2fasecret'
                                 ]
-    
-                                if (!(L_iConfig['key'].hasOwnProperty('type') && L_iConfig['key'].hasOwnProperty('data'))) {
+
+                                if (L_iConfig['key'] == undefined) {
                                     L_iConfig['key'] = crypto.randomBytes(32)
                                 }
     
                                 for (var key in L_iConfig_keysToCrypt) {
-                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
-                                        encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
-                                            L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
-                                        })
+                                    if (L_iConfig[L_iConfig_keysToCrypt[key]].length > 0 || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
+                                        if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
+                                            encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
+                                                L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
+                                            })
+                                        }
+                                    } else {
+                                        console.log(script_messages.instance_missing_key_critical('instance_password, instance_2fasecret'))
+                                        process.exit(9);
                                     }
                                 }
     
@@ -559,49 +487,25 @@ function main() {
                                 }
                             }
 
-                            // if (typeof(L_iConfig['instance_password']) == 'string') {
-                            //     if (L_iConfig['key'] == undefined) {
-                            //         L_iConfig['key'] = crypto.randomBytes(32)
-                            //     }
-                            //     encrypt(L_iConfig['instance_password'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
-                            //         L_iConfig['instance_password'] = encoded_str
-                            //         if (typeof(L_iConfig['instance_2fasecret']) == 'string') {
-                            //             encrypt(L_iConfig['instance_2fasecret'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str_) {
-                            //                 L_iConfig['instance_2fasecret'] = encoded_str_
-                            //                 callback(L_iConfig, L_iConfigAlias__)
-                            //             })
-                            //         } else {
-                            //             callback(L_iConfig, L_iConfigAlias__)
-                            //         }
-                            //     })
-                            // } else {
-                            //     if (typeof(L_iConfig['instance_2fasecret']) == 'string') {
-                            //         if (L_iConfig['key'] == undefined) {
-                            //             L_iConfig['key'] = crypto.randomBytes(32)
-                            //         }
-                            //         encrypt(L_iConfig['instance_2fasecret'], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str_) {
-                            //             L_iConfig['instance_2fasecret'] = encoded_str_
-                            //             callback(L_iConfig, L_iConfigAlias__)
-                            //         })
-                            //     } else {
-                            //         callback(L_iConfig, L_iConfigAlias__)
-                            //     }
-                            // }
-
                             var L_iConfig_keysToCrypt = [
                                 'instance_password',
                                 'instance_2fasecret'
                             ]
 
-                            if (!(L_iConfig['key'].hasOwnProperty('type') && L_iConfig['key'].hasOwnProperty('data'))) {
+                            if (L_iConfig['key'] == undefined) {
                                 L_iConfig['key'] = crypto.randomBytes(32)
                             }
 
                             for (var key in L_iConfig_keysToCrypt) {
-                                if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
-                                    encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
-                                        L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
-                                    })
+                                if (L_iConfig[L_iConfig_keysToCrypt[key]].length > 0 || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
+                                    if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string') {
+                                        encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
+                                            L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
+                                        })
+                                    }
+                                } else {
+                                    console.log(script_messages.instance_missing_key_critical('instance_password, instance_2fasecret'))
+                                    process.exit(9);
                                 }
                             }
 
@@ -656,6 +560,7 @@ function main() {
             }
         } else {
             logger.error(script_messages.instance_missing_key_critical('instance_username, instance_password'))
+            process.exit(9);
         }
     }
 
