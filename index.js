@@ -36,7 +36,7 @@ var steamUser_appOwnershipIsCached = false
 
 var steamUser_messageUrlRegex = new RegExp(/((?:(?:https?|ftp)?:\/\/)?(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x\u00a1-\uffff0-9]+-?)*[a-z\x\u00a1-\uffff0-9]+)(?:\.(?:[a-z\x\u00a1-\uffff0-9]+-?)*[a-z\x\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\x\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?)/igm)
 
-var script_messages = Object.freeze({
+var script_messages = {}.freeze({
     instance_missing_key_critical: function(str) {
         return 'Key(s) ' + str + ' are not present in a chosen instance configuration! Append --configure launch argument to execute instance setup.'
     },
@@ -50,18 +50,18 @@ var script_messages = Object.freeze({
         return 'Key(s) ' + str + ' are empty in a chosen instance configuration!'
     }
 })
-var instance_usereplymessage_enums = Object.freeze({
+var instance_usereplymessage_enums = {}.freeze({
     "command_validation": 1,
     "mode_idle": 2,
     "mode_gameidle": 3,
     "mode_mirror": 4
 })
-var instance_friendrequests_auto_enums = Object.freeze({
+var instance_friendrequests_auto_enums = {}.freeze({
     "accept_rank": 1,
     "reject_rank": 2,
     "reject_name": 3,
 })
-var instance_friendmessages_url_enums = Object.freeze({
+var instance_friendmessages_url_enums = {}.freeze({
     "unfriend": 1,
     "block": 2,
 })
@@ -325,6 +325,45 @@ var questions = [
     },
 ]
 
+function jsonfile_saveFile(L_gConfig, L_iConfig, L_iConfigAlias, callback) {
+    L_gConfig[L_iConfigAlias] = L_iConfig
+    var file = __dirname + '/instances.json'
+    jsonfile.writeFile(file, L_gConfig, {
+        spaces: 4,
+        EOL: '\r\n'
+    }, function(err) {
+        if (err) console.error(err)
+        if (callback) callback()
+    })
+}
+
+function jsonfile_readFile(callback) {
+    var file = __dirname + '/instances.json'
+    jsonfile.readFile(file, function(err, obj) {
+        if (err) console.error(err)
+        callback(obj)
+    })
+}
+
+function crypto_encrypt(text, key, iv, callback) {
+    let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv)
+    let encrypted = cipher.update(text)
+    encrypted = Buffer.concat([encrypted, cipher.final()])
+    callback({
+        iv: iv.toString('hex'),
+        encryptedData: encrypted.toString('hex')
+    })
+}
+
+function crypto_decrypt(text, key, callback) {
+    let iv = Buffer.from(text.iv, 'hex')
+    let encryptedText = Buffer.from(text.encryptedData, 'hex')
+    let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv)
+    let decrypted = decipher.update(encryptedText)
+    decrypted = Buffer.concat([decrypted, decipher.final()])
+    callback(decrypted.toString())
+}
+
 function main() {
     var lConfig = parseargs(process.argv.slice(2))
     var gConfig = {}
@@ -413,7 +452,7 @@ function main() {
                                 for (var key in L_iConfig_keysToCrypt) {
                                     if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
                                         if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' && L_iConfig[L_iConfig_keysToCrypt[key]].length > 0) {
-                                            encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
+                                            crypto_encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
                                                 L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                             })
                                         }
@@ -445,7 +484,7 @@ function main() {
                             for (var key in L_iConfig_keysToCrypt) {
                                 if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
                                     if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' && L_iConfig[L_iConfig_keysToCrypt[key]].length > 0) {
-                                        encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
+                                        crypto_encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
                                             L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                         })
                                     }
@@ -481,7 +520,7 @@ function main() {
                                 for (var key in L_iConfig_keysToCrypt) {
                                     if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
                                         if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' && L_iConfig[L_iConfig_keysToCrypt[key]].length > 0) {
-                                            encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
+                                            crypto_encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
                                                 L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                             })
                                         }
@@ -512,7 +551,7 @@ function main() {
                             for (var key in L_iConfig_keysToCrypt) {
                                 if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' || typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'object') {
                                     if (typeof(L_iConfig[L_iConfig_keysToCrypt[key]]) == 'string' && L_iConfig[L_iConfig_keysToCrypt[key]].length > 0) {
-                                        encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
+                                        crypto_encrypt(L_iConfig[L_iConfig_keysToCrypt[key]], L_iConfig['key'], crypto.randomBytes(16), function(encoded_str) {
                                             L_iConfig[L_iConfig_keysToCrypt[key]] = encoded_str
                                         })
                                     }
@@ -533,7 +572,7 @@ function main() {
             if (L_iConfig['instance_username'].length > 0 && typeof(L_iConfig['instance_password']) == 'object') {
                 if (L_iConfig.hasOwnProperty('instance_loginkey') && L_iConfig['instance_useloginkey']) {
                     logger.info('Use instance_loginkey')
-                    decrypt(L_iConfig['instance_password'], L_iConfig['key'], function(decrypted_str) {
+                    crypto_decrypt(L_iConfig['instance_password'], L_iConfig['key'], function(decrypted_str) {
                         if (L_iConfig['instance_username'].length == 0) {
                             logger.warn(script_messages.instance_empty_key('instance_username'))
                         }
@@ -551,7 +590,7 @@ function main() {
                         }
                     })
                 } else {
-                    decrypt(L_iConfig['instance_password'], L_iConfig['key'], function(decrypted_str) {
+                    crypto_decrypt(L_iConfig['instance_password'], L_iConfig['key'], function(decrypted_str) {
                         if (L_iConfig['instance_username'].length == 0) {
                             logger.warn(script_messages.instance_empty_key('instance_username'))
                         }
@@ -579,14 +618,14 @@ function main() {
     }
 
     console.log(script_messages.script_stage_completion(1, 5, 'Read configuration file...'))
-    JSONreadFile(function(R_gConfig) {
+    jsonfile_readFile(function(R_gConfig) {
         gConfig = R_gConfig
         console.log(script_messages.script_stage_completion(2, 5, 'Get instance configuration...'))
         get_iConfig(gConfig, lConfig, iConfigAlias, iConfigEdit, function(R_iConfig, R_iConfigAlias) {
             iConfig = R_iConfig
             iConfigAlias = R_iConfigAlias
             console.log(script_messages.script_stage_completion(3, 5, 'Save configuration file...'))
-            JSONsaveFile(gConfig, iConfig, iConfigAlias, function() {
+            jsonfile_saveFile(gConfig, iConfig, iConfigAlias, function() {
                 console.log(script_messages.script_stage_completion(4, 5, 'Add log output...'))
                 logger = new(winston.Logger)({
                     transports: [new(winston.transports.Console)({
@@ -671,7 +710,7 @@ function main() {
                     client.on('steamGuard', function(domain, callback, lastCodeWrong) {
                         if (iConfig.hasOwnProperty('instance_2fasecret') && (!lastCodeWrong)) {
                             if (typeof(iConfig['instance_2fasecret']) == 'object') {
-                                decrypt(iConfig['instance_2fasecret'], iConfig['key'], function(decrypted_str) {
+                                crypto_decrypt(iConfig['instance_2fasecret'], iConfig['key'], function(decrypted_str) {
                                     if (decrypted_str.length > 0) {
                                         logger.info('Use instance_2fasecret')
                                         callback(steamtotp.generateAuthCode(decrypted_str))
@@ -702,7 +741,7 @@ function main() {
                     client.on('loginKey', function(key) {
                         logger.info('Save instance_loginkey')
                         iConfig['instance_loginkey'] = key
-                        JSONsaveFile(gConfig, iConfig, iConfigAlias)
+                        jsonfile_saveFile(gConfig, iConfig, iConfigAlias)
                     })
 
                     client.on('appOwnershipCached', function() {
@@ -780,7 +819,7 @@ function main() {
                                             if (L_gamesPlayedArray == "") {
                                                 logger_logCommandSuccess(steamID, message, 'Request processed!')
                                                 iConfig['instance_clientgamesplayed'] = L_gamesPlayedResultArray
-                                                JSONsaveFile(gConfig, iConfig, iConfigAlias)
+                                                jsonfile_saveFile(gConfig, iConfig, iConfigAlias)
                                                 client.gamesPlayed(L_gamesPlayedResultArray)
                                             } else {
                                                 if (steamUser_appOwnershipIsCached) {
@@ -798,7 +837,7 @@ function main() {
                                                         })
                                                     }
                                                     iConfig['instance_clientgamesplayed'] = L_gamesPlayedResultArray
-                                                    JSONsaveFile(gConfig, iConfig, iConfigAlias)
+                                                    jsonfile_saveFile(gConfig, iConfig, iConfigAlias)
                                                     client.gamesPlayed(L_gamesPlayedResultArray)
                                                 } else {
                                                     logger_logCommandFail(steamID, message, 'Client apps are not cached yet!')
@@ -906,45 +945,6 @@ function main() {
             })
         })
     })
-}
-
-function JSONsaveFile(L_gConfig, L_iConfig, L_iConfigAlias, callback) {
-    L_gConfig[L_iConfigAlias] = L_iConfig
-    var file = __dirname + '/instances.json'
-    jsonfile.writeFile(file, L_gConfig, {
-        spaces: 4,
-        EOL: '\r\n'
-    }, function(err) {
-        if (err) console.error(err)
-        if (callback) callback()
-    })
-}
-
-function JSONreadFile(callback) {
-    var file = __dirname + '/instances.json'
-    jsonfile.readFile(file, function(err, obj) {
-        if (err) console.error(err)
-        callback(obj)
-    })
-}
-
-function encrypt(text, key, iv, callback) {
-    let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv)
-    let encrypted = cipher.update(text)
-    encrypted = Buffer.concat([encrypted, cipher.final()])
-    callback({
-        iv: iv.toString('hex'),
-        encryptedData: encrypted.toString('hex')
-    })
-}
-
-function decrypt(text, key, callback) {
-    let iv = Buffer.from(text.iv, 'hex')
-    let encryptedText = Buffer.from(text.encryptedData, 'hex')
-    let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv)
-    let decrypted = decipher.update(encryptedText)
-    decrypted = Buffer.concat([decrypted, decipher.final()])
-    callback(decrypted.toString())
 }
 
 main()
